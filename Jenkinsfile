@@ -49,7 +49,7 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
-                       export DOCKER_BUILDKIT=1
+                       export DOCKER_BUILDKIT=0
                        docker build -t ${BACKEND_IMG} backend/
                        '''
                 }
