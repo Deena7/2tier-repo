@@ -33,23 +33,23 @@ pipeline {
             }
         }
 
-        stage('Build Backend Image') {
+        stage('Build Backend') {
             steps {
-                dir('backend') {
-                    // Set BuildKit=0 here to avoid the error you saw earlier
-                    sh "export DOCKER_BUILDKIT=0 && docker build -t ${BACKEND_IMG} ."
+              dir('backend') {
+                  // Using '.' because we are already inside 'backend'
+                 sh "export DOCKER_BUILDKIT=0 && docker build -t ${BACKEND_IMG} ."
                 }
             }
-        }
+          }
 
-        stage('Build Frontend Image') {
-            steps {
-                dir('frontend') {
-                    // Fixed: Build the frontend image using the frontend context
-                    sh "export DOCKER_BUILDKIT=0 && docker build -t ${FRONTEND_IMG} ."
-                }
-            }
-        }
+        stage('Build Frontend') {
+             steps {
+               dir('frontend') {
+                   // Using '.' because we are already inside 'frontend'
+                sh "export DOCKER_BUILDKIT=0 && docker build -t ${FRONTEND_IMG} ."
+               }
+           }
+         }
 
         stage('Docker Login & Push') {
             steps {
@@ -75,3 +75,4 @@ pipeline {
         }
     }
 }
+
