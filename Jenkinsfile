@@ -19,19 +19,22 @@ pipeline {
         }
 
         stage('SonarQube Scan - Backend') {
-            steps {
-                dir('backend') {
-                    sh """
+    steps {
+        dir('backend') {
+            withCredentials([string(credentialsId: 'sonar-creds', variable: 'SONAR_TOKEN')]) {
+                sh '''
+                    export PATH=$PATH:/opt/sonar-scanner/bin
                     sonar-scanner \
                       -Dsonar.projectKey=backend \
                       -Dsonar.projectName=backend \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=http://3.0.139.76:9000 \
-                      -Dsonar.login=${SONAR_TOKEN}
-                    """
-                }
+                      -Dsonar.login=$SONAR_TOKEN
+                '''
             }
         }
+    }
+}
 
         stage('Build Backend Image') {
             steps {
