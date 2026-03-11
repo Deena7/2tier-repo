@@ -1,22 +1,39 @@
-FROM node:18-alpine AS build
-WORKDIR /app
+# 1. Configuration (We'll use the local provider to create a file)
+terraform {
+  required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "2.4.0"
+    }
+  }
+}
 
-# Copy package files
-COPY package*.json ./
+# 2. Input Variables (The "Raw" data)
+variable "app_name" {
+  type    = string
+  default = "   Super-App-2026   " # Notice the messy spaces
+}
 
-# Force install ALL dependencies (including devDependencies)
-# We use --include=dev to ensure the Angular builder is installed
-RUN npm install --include=dev
+# 3. Locals (The "Clean-up" logic)
+locals {
+  # We trim the spaces and make it lowercase
+  clean_name = trimspace(lower(var.app_name))
+  
+  # We define a standard set of metadata
+  file_content = <<EOT
+  Application Name: ${local.clean_name}
+  Deployment Date:  ${formatdate("DD MMM YYYY", timestamp())}
+  Status:           Active
+  EOT
+}
 
-# Copy the rest of the code
-COPY . .
+# 4. Resource (Using the locals to do work)
+resource "local_file" "app_config" {
+  content  = local.file_content
+  filename = "${path.module}/config-${local.clean_name}.txt"
+}
 
-# Run the build
-RUN npm run build -- --configuration production
-
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
-# Check your angular.json for the 'outputPath'. 
-# It is likely dist/angular-frontend or just dist/
-COPY --from=build /app/dist/angular-frontend /usr/share/nginx/html
-EXPOSE 80
+# 5. Output (To see the result in the terminal)
+output "result" {
+  value = "Success! Created file: config-${local.clean_name}.txt"
+}
